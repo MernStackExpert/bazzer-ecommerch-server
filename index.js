@@ -1,13 +1,13 @@
+
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
 
-const { connectDB } = require("./config/db");
-
-dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 5000;
 
+// middleware
 app.use(
   cors({
     origin: ["http://localhost:3000"],
@@ -20,16 +20,12 @@ app.use(
 app.use(express.json());
 
 
+
 app.get("/", (req, res) => {
-  res.status(200).send("Alhamdulillah! Mongodb is Running Successfully.");
+  res.send("E-commerce server running 🚀");
 });
 
-const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+app.listen(port, () => {
+  console.log(`🚀 Server running on port ${port}`);
 });
-
-module.exports = app;
