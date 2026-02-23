@@ -121,6 +121,47 @@ const getProductById = async (req, res) => {
   }
 };
 
+const getSellerProducts = async (req, res) => {
+  try {
+    const productCollection = await collection();
+    const { sellerId } = req.params; 
+    const { status, deleted } = req.query;
+    if (!sellerId) {
+      return res.status(400).send({ success: false, message: "Seller ID is required!" });
+    }
+
+    const query = { 
+      "seller.sellerId": sellerId 
+    };
+
+
+    if (deleted === "true") {
+      query["status.isDeleted"] = true;
+    } else if (deleted === "false") {
+      query["status.isDeleted"] = false;
+    }
+
+    if (status) {
+      query["status.approval"] = status;
+    }
+
+    const products = await productCollection
+      .find(query)
+      .sort({ createdAt: -1 }) 
+      .toArray();
+
+    res.status(200).send({
+      success: true,
+      count: products.length,
+      products: products
+    });
+
+  } catch (error) {
+    console.error("Error fetching seller products:", error);
+    res.status(500).send({ success: false, message: "Internal Server Error" });
+  }
+};
+
 
 const addProduct = async (req, res) => {
   try {
@@ -332,4 +373,7 @@ const updateProductAnalytics = async (req, res) => {
 };
 
 
-module.exports = { getAllProducts, getProductById , addProduct , updateProduct , deleteProduct , updateProductAnalytics};
+
+
+
+module.exports = { getAllProducts, getProductById , addProduct , updateProduct , deleteProduct , updateProductAnalytics , getSellerProducts};
