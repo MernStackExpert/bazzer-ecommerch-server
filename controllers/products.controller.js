@@ -235,7 +235,59 @@ const updateProduct = async (req, res) => {
 };
 
 
+const deleteProduct = async (req, res) => {
+  try {
+    const productCollection = await collection();
+    const { id } = req.params;
+    const { sellerId, userRole } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ success: false, message: "Invalid Product ID!" });
+    }
+
+    const product = await productCollection.findOne({ _id: new ObjectId(id) });
+
+    if (!product) {
+      return res.status(404).send({ success: false, message: "Product not found!" });
+    }
+
+    if (userRole !== "admin" && product.seller.sellerId !== sellerId) {
+      return res.status(403).send({ 
+        success: false, 
+        message: "Unauthorized! You can only delete your own products." 
+      });
+    }
+
+    const result = await productCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { 
+        $set: { 
+          "status.isDeleted": true, 
+          "status.isActive": false,
+          updatedAt: new Date() 
+        } 
+      }
+    );
+
+    if (result.modifiedCount > 0) {
+      res.status(200).send({
+        success: true,
+        message: "Product deleted successfully (Soft Delete)!"
+      });
+    } else {
+      res.status(400).send({ success: false, message: "Failed to delete the product." });
+    }
+
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res.status(500).send({ 
+      success: false, 
+      message: "Internal Server Error", 
+      error: error.message 
+    });
+  }
+};
 
 
 
-module.exports = { getAllProducts, getProductById , addProduct , updateProduct };
+module.exports = { getAllProducts, getProductById , addProduct , updateProduct , deleteProduct};
