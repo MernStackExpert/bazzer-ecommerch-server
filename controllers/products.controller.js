@@ -178,6 +178,64 @@ const addProduct = async (req, res) => {
 };
 
 
+const updateProduct = async (req, res) => {
+  try {
+    const productCollection = await collection();
+    const { id } = req.params; 
+    const { sellerId, userRole, ...updateData } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ success: false, message: "Invalid Product ID!" });
+    }
+
+    const existingProduct = await productCollection.findOne({ _id: new ObjectId(id) });
+
+    if (!existingProduct) {
+      return res.status(404).send({ success: false, message: "Product not found!" });
+    }
+
+    if (userRole !== "admin" && existingProduct.seller.sellerId !== sellerId) {
+      return res.status(403).send({ 
+        success: false, 
+        message: "Unauthorized! You can only update your own products." 
+      });
+    }
+
+    const finalUpdateData = {
+      ...updateData,
+      updatedAt: new Date() 
+    };
+
+    if (updateData.name) {
+      finalUpdateData.slug = updateData.name.toLowerCase().replace(/ /g, "-") + "-" + Date.now();
+    }
+
+    const result = await productCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: finalUpdateData }
+    );
+
+    if (result.modifiedCount > 0) {
+      res.status(200).send({
+        success: true,
+        message: "Product updated successfully!",
+      });
+    } else {
+      res.status(400).send({ success: false, message: "No changes made to the product." });
+    }
+
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res.status(500).send({ 
+      success: false, 
+      message: "Internal Server Error", 
+      error: error.message 
+    });
+  }
+};
 
 
-module.exports = { getAllProducts, getProductById , addProduct};
+
+
+
+module.exports = { getAllProducts, getProductById , addProduct , updateProduct };
