@@ -288,6 +288,48 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+const updateProductAnalytics = async (req, res) => {
+  try {
+    const productCollection = await collection();
+    const { id } = req.params; 
+    const { type } = req.body; 
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ success: false, message: "Invalid Product ID!" });
+    }
+
+    let updateField = {};
+    if (type === "view") {
+      updateField = { "analytics.views": 1 };
+    } else if (type === "sale") {
+      updateField = { "analytics.salesCount": 1 };
+    } else if (type === "wishlist") {
+      updateField = { "analytics.wishlistCount": 1 };
+    } else {
+      return res.status(400).send({ success: false, message: "Invalid analytics type!" });
+    }
+
+    const result = await productCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { 
+        $inc: updateField,
+        $set: { updatedAt: new Date() } 
+      }
+    );
+
+    if (result.modifiedCount > 0) {
+      res.status(200).send({
+        success: true,
+        message: `Product ${type} updated successfully!`
+      });
+    } else {
+      res.status(404).send({ success: false, message: "Product not found!" });
+    }
+
+  } catch (error) {
+    console.error("Error updating analytics:", error);
+    res.status(500).send({ success: false, message: "Internal Server Error" });
+  }
+};
 
 
-module.exports = { getAllProducts, getProductById , addProduct , updateProduct , deleteProduct};
+module.exports = { getAllProducts, getProductById , addProduct , updateProduct , deleteProduct , updateProductAnalytics};
