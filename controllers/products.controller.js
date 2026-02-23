@@ -73,7 +73,53 @@ const getAllProducts = async (req, res) => {
 };
 
 
+const getProductById = async (req, res) => {
+  try {
+    const productCollection = await collection();
+    const { id } = req.params; 
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid Product ID format!"
+      });
+    }
 
+    const product = await productCollection.findOne({
+      _id: new ObjectId(id),
+      "status.isDeleted": false
+    });
+
+    if (!product) {
+      return res.status(404).send({
+        success: false,
+        message: "Product not found!"
+      });
+    }
+
+    const relatedProducts = await productCollection
+      .find({
+        "category.id": product.category.id,
+        _id: { $ne: product._id },
+        "status.approval": "approved"
+      })
+      .limit(4)
+      .toArray();
+
+    res.status(200).send({
+      success: true,
+      data: product,
+      relatedProducts: relatedProducts
+    });
+
+  } catch (error) {
+    console.error("Error fetching product by ID:", error);
+    res.status(500).send({ 
+      success: false, 
+      message: "Internal Server Error", 
+      error: error.message 
+    });
+  }
+};
 
 
 const addProduct = async (req, res) => {
@@ -134,4 +180,4 @@ const addProduct = async (req, res) => {
 
 
 
-module.exports = { getAllProducts,  addProduct};
+module.exports = { getAllProducts, getProductById , addProduct};
