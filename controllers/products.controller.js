@@ -74,4 +74,64 @@ const getAllProducts = async (req, res) => {
 
 
 
-module.exports = { getAllProducts};
+
+
+const addProduct = async (req, res) => {
+  try {
+    const productCollection = await collection();
+    const productData = req.body;
+
+   
+    const { userRole } = req.body; 
+    if (userRole !== "seller" && userRole !== "admin") {
+      return res.status(403).send({ 
+        success: false, 
+        message: "Forbidden! Only sellers or admins can add products." 
+      });
+    }
+
+    const newProduct = {
+      ...productData,
+      slug: productData.name.toLowerCase().replace(/ /g, "-") + "-" + Date.now(),
+      status: {
+        approval: "approved",
+        isActive: true,
+        isDeleted: false
+      },
+      analytics: {
+        views: 0,
+        salesCount: 0,
+        wishlistCount: 0
+      },
+      rating: {
+        average: 0,
+        totalReviews: 0
+      },
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await productCollection.insertOne(newProduct);
+
+    if (result.insertedId) {
+      res.status(201).send({
+        success: true,
+        message: "Product added successfully!",
+        productId: result.insertedId
+      });
+    }
+
+  } catch (error) {
+    console.error("Error adding product:", error);
+    res.status(500).send({ 
+      success: false, 
+      message: "Failed to add product", 
+      error: error.message 
+    });
+  }
+};
+
+
+
+
+module.exports = { getAllProducts,  addProduct};
