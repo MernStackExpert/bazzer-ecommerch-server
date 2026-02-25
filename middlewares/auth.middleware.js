@@ -19,7 +19,6 @@ const verifyToken = (req, res, next) => {
         message: "Forbidden access! Invalid or expired token." 
       });
     }
-    // টোকেন ঠিক থাকলে ইউজারের ডাটা (email, role, id) রিকোয়েস্টে সেভ করা হচ্ছে
     req.user = decoded; 
     next();
   });
