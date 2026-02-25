@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken')
 const nodemailer = require('nodemailer');
 const { connectDB, ObjectId } = require("../config/db");
 
@@ -181,6 +182,7 @@ const verifyLoginOTP = async (req, res) => {
 
     const user = await userCollection.findOne({ email });
 
+    
     if (!user || user.verificationCode !== otp) {
       return res.status(400).json({ success: false, message: "Invalid or expired code!" });
     }
@@ -195,7 +197,7 @@ const verifyLoginOTP = async (req, res) => {
     );
 
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
+      { id: user._id, email: user.email, role: user.role }, 
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: '7d' }
     );
@@ -203,7 +205,7 @@ const verifyLoginOTP = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Login successful!",
-      token,
+      token, 
       user: { id: user._id, name: user.name, email: user.email, role: user.role }
     });
 
