@@ -212,5 +212,58 @@ const verifyLoginOTP = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const { name, phone, image, address } = req.body;
+    const userCollection = await getUserCollection();
+    
+    const userId = req.user.id; 
 
-module.exports = { registerUser, verifyOTP , loginUser , verifyLoginOTP};
+    const updatedData = {};
+    if (name) updatedData.name = name;
+    if (phone) updatedData.phone = phone;
+    if (image) updatedData.image = image;
+    if (address) updatedData.address = address;
+
+    const result = await userCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: updatedData }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({ success: false, message: "No changes made!" });
+    }
+
+    res.status(200).json({ success: true, message: "Profile updated successfully!" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updatePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const userCollection = await getUserCollection();
+    const userId = req.user.id;
+
+    const user = await userCollection.findOne({ _id: new ObjectId(userId) });
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: "Old password does not match!" });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    await userCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { password: hashedNewPassword } }
+    );
+
+    res.status(200).json({ success: true, message: "Password updated successfully!" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { registerUser, verifyOTP , loginUser , verifyLoginOTP , updateProfile , updatePassword};
