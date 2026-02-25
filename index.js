@@ -20,8 +20,13 @@ app.use(express.json());
 // ROUTES
 const productRoutes = require("./routes/products.routes");
 
+// users
+const usersRoutes = require("./routes/user.routes");
+
 //  API
 app.use("/api/products", productRoutes);
+app.use("/api/users", usersRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("E-commerce server running 🚀");

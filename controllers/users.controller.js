@@ -14,6 +14,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  tls: {
+    rejectUnauthorized: false
+  }
 });
 
 const registerUser = async (req, res) => {
@@ -109,5 +112,68 @@ const verifyOTP = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const userCollection = await getUserCollection();
+
+    const user = await userCollection.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found!" });
+    }
+
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      const remainingTime = Math.ceil((user.lockUntil - new Date()) / (1000 * 60 * 60));
+      return res.status(403).json({ success: false, message: `Account locked. Try again after ${remainingTime} hours.` });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+      const newAttempts = (user.loginAttempts || 0) + 1;
+      if (newAttempts >= 5) {
+        const lockTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        await userCollection.updateOne({ email }, { $set: { loginAttempts: 0, lockUntil: lockTime } });
+        return res.status(403).json({ success: false, message: "Too many attempts! Account locked for 24 hours." });
+      } else {
+        await userCollection.updateOne({ email }, { $set: { loginAttempts: newAttempts } });
+        return res.status(401).json({ success: false, message: `Invalid password! ${5 - newAttempts} attempts left.` });
+      }
+    }
+
+    // পাসওয়ার্ড মিলে গেলে এখন লগইন OTP তৈরি করবো
+    const loginOtp = crypto.randomBytes(4).toString('hex').toUpperCase();
+    const loginOtpExpires = new Date(Date.now() + 5 * 60 * 1000); // ৫ মিনিট মেয়াদ
+
+    await userCollection.updateOne(
+      { email },
+      { $set: { verificationCode: loginOtp, codeExpires: loginOtpExpires, loginAttempts: 0 } }
+    );
+
+    // ইমেইল পাঠানো
+    const mailOptions = {
+      from: `"Bazzar Marketplace" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Your Login Verification Code",
+      html: `<div style="padding: 20px; border: 1px solid #eee;">
+               <h2>Login Verification</h2>
+               <p>Use the code below to complete your login:</p>
+               <h1 style="background: #f4f4f4; text-align: center;">${loginOtp}</h1>
+             </div>`
+    };
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({
+      success: true,
+      message: "A verification code has been sent to your email."
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 module.exports = { registerUser, verifyOTP };
