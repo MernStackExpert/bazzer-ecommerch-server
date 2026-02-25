@@ -143,16 +143,14 @@ const loginUser = async (req, res) => {
       }
     }
 
-    // পাসওয়ার্ড মিলে গেলে এখন লগইন OTP তৈরি করবো
     const loginOtp = crypto.randomBytes(4).toString('hex').toUpperCase();
-    const loginOtpExpires = new Date(Date.now() + 5 * 60 * 1000); // ৫ মিনিট মেয়াদ
+    const loginOtpExpires = new Date(Date.now() + 5 * 60 * 1000); 
 
     await userCollection.updateOne(
       { email },
       { $set: { verificationCode: loginOtp, codeExpires: loginOtpExpires, loginAttempts: 0 } }
     );
 
-    // ইমেইল পাঠানো
     const mailOptions = {
       from: `"Bazzar Marketplace" <${process.env.EMAIL_USER}>`,
       to: email,
@@ -176,4 +174,43 @@ const loginUser = async (req, res) => {
 };
 
 
-module.exports = { registerUser, verifyOTP };
+const verifyLoginOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const userCollection = await getUserCollection();
+
+    const user = await userCollection.findOne({ email });
+
+    if (!user || user.verificationCode !== otp) {
+      return res.status(400).json({ success: false, message: "Invalid or expired code!" });
+    }
+
+    if (new Date() > user.codeExpires) {
+      return res.status(400).json({ success: false, message: "Code expired!" });
+    }
+
+    await userCollection.updateOne(
+      { email },
+      { $unset: { verificationCode: "", codeExpires: "" } }
+    );
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful!",
+      token,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+module.exports = { registerUser, verifyOTP , loginUser , verifyLoginOTP};
