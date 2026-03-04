@@ -25,9 +25,14 @@ const productRoutes = require("./routes/products.routes");
 // users
 const usersRoutes = require("./routes/user.routes");
 
+// wishlist
+const wishlistRoutes = require("./routes/wishlist.routes");
+
+
 //  API
 app.use("/api/products", productRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 
 
 app.get("/", (req, res) => {
