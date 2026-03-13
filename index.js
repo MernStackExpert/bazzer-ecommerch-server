@@ -31,12 +31,15 @@ const wishlistRoutes = require("./routes/wishlist.routes");
 // orders api
 const orderRoutes = require("./routes/order.routes");
 
+// seller info
+
 
 //  API
 app.use("/api/products", productRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/seller", sellerRoutes);
 
 
 app.get("/", (req, res) => {
