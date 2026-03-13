@@ -4,7 +4,7 @@ const sendOrderEmail = require("../utils/sendOrderEmail");
 
 const collection = async () => {
   const db = await connectDB();
-  return db.collection("orders");
+  return db.collection("bazzar_orders");
 };
 
 const getOrders = async (req, res) => {
@@ -131,6 +131,44 @@ const createOrders = async (req, res) => {
   }
 };
 
+const updateOrder = async (req, res) => {
+  try {
+    const ordersCollection = await collection();
+    const id = req.params.id;
+    const result = await ordersCollection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          ...req.body,
+          updatedAt: new Date(),
+        },
+      }
+    );
 
+    if (result.matchedCount === 0) {
+      return res.status(404).send({ message: "Order Not Found" });
+    }
 
-module.exports = { getOrders, createOrders , getSingleOrder };
+    res.send({ message: "Order updated successfully", result });
+  } catch (error) {
+    res.status(500).send({ message: "Failed to update order", error });
+  }
+};
+
+const deleteOrder = async (req, res) => {
+  try {
+    const ordersCollection = await collection();
+    const id = req.params.id;
+    const result = await ordersCollection.deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send({ message: "Order Not Found" });
+    }
+
+    res.send({ message: "Order deleted successfully", result });
+  } catch (error) {
+    res.status(500).send({ message: "Failed to delete order", error });
+  }
+};
+
+module.exports = { getOrders, createOrders, updateOrder, deleteOrder , getSingleOrder };
