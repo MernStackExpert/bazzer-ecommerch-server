@@ -1,4 +1,4 @@
-const { transporter } = require("../config/nodemailer");
+const transporter = require("../config/nodemailer"); 
 
 require("dotenv").config();
 
@@ -12,6 +12,7 @@ const sendOrderEmail = async ({ to, subject, html }) => {
     });
 
     console.log("Email sent: ", info.messageId);
+    return info; 
   } catch (error) {
     console.error("Error sending email in utility: ", error.message);
     throw error; 
