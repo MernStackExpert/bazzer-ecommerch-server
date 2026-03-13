@@ -5,11 +5,6 @@ const getWishlistCollection = async () => {
   return db.collection("bazzar_wishlist");
 };
 
-const getProductCollection = async () => {
-  const db = await connectDB();
-  return db.collection("bazzar_products"); 
-};
-
 const addToWishlist = async (req, res) => {
   try {
     const { productId } = req.body;
