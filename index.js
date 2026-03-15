@@ -32,7 +32,7 @@ const wishlistRoutes = require("./routes/wishlist.routes");
 const orderRoutes = require("./routes/order.routes");
 
 // seller info
-
+const sellerRoutes = require("./routes/seller.routes");
 
 //  API
 app.use("/api/products", productRoutes);

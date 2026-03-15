@@ -174,7 +174,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-
 const verifyLoginOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -268,4 +267,34 @@ const updatePassword = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, verifyOTP , loginUser , verifyLoginOTP , updateProfile , updatePassword};
+
+const getUserProfile = async (req, res) => {
+  try {
+    const userCollection = await getUserCollection();
+    
+    const email = req.query.email || req.user.email;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required!" });
+    }
+
+    const user = await userCollection.findOne(
+      { email },
+      { projection: { password: 0, verificationCode: 0, codeExpires: 0 } } 
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found!" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { registerUser, verifyOTP , loginUser , verifyLoginOTP , updateProfile , updatePassword , getUserProfile};
