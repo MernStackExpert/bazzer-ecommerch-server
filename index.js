@@ -32,7 +32,16 @@ const wishlistRoutes = require("./routes/wishlist.routes");
 const orderRoutes = require("./routes/order.routes");
 
 // seller info
+const sellerRoutes = require("./routes/seller.routes");
 
+// add to cart routes
+const cartRoutes = require("./routes/cart.routes");
+
+// user state api
+const userStateRoutes = require("./routes/userState.routes");
+
+// admin info 
+const adminRoutes = require("./routes/admin.routes");
 
 //  API
 app.use("/api/products", productRoutes);
@@ -40,6 +49,9 @@ app.use("/api/users", usersRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/seller", sellerRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/user-dashboard", userStateRoutes);
+app.use("/api/admin", adminRoutes);
 
 
 app.get("/", (req, res) => {
