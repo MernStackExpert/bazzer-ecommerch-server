@@ -20,6 +20,35 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+const getUserProfile = async (req, res) => {
+  try {
+    const userCollection = await getUserCollection();
+    
+    const { email } = req.params;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email parameter is required!" });
+    }
+
+    const user = await userCollection.findOne(
+      { email: email },
+      { projection: { password: 0, verificationCode: 0, codeExpires: 0, loginAttempts: 0 } } 
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found with this email!" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -268,33 +297,5 @@ const updatePassword = async (req, res) => {
 };
 
 
-const getUserProfile = async (req, res) => {
-  try {
-    const userCollection = await getUserCollection();
-    
-    const email = req.query.email || req.user.email;
-
-    if (!email) {
-      return res.status(400).json({ success: false, message: "Email is required!" });
-    }
-
-    const user = await userCollection.findOne(
-      { email },
-      { projection: { password: 0, verificationCode: 0, codeExpires: 0 } } 
-    );
-
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found!" });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: user
-    });
-
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
 
 module.exports = { registerUser, verifyOTP , loginUser , verifyLoginOTP , updateProfile , updatePassword , getUserProfile};

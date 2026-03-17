@@ -22,7 +22,11 @@ const verifyToken = (req, res, next) => {
     req.user = decoded; 
     next();
   });
+
+  console.log("AUTH HEADER:", authHeader);
+console.log("TOKEN:", token);
 };
+
 
 
 module.exports = { verifyToken};
