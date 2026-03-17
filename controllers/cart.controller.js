@@ -73,6 +73,47 @@ const getMyCart = async (req, res) => {
   }
 };
 
+const updateCartQuantity = async (req, res) => {
+  try {
+    const cartCollection = await getCartCollection();
+    const { id } = req.params;
+    const { action } = req.body; 
 
+    const item = await cartCollection.findOne({ _id: new ObjectId(id) });
+    if (!item) return res.status(404).json({ message: "Item not found" });
 
-module.exports = { addToCart, getMyCart };
+    let newQuantity = item.quantity;
+    if (action === "increase") {
+      if (newQuantity >= item.stock) return res.status(400).json({ message: "Stock limit reached" });
+      newQuantity += 1;
+    } else if (action === "decrease") {
+      if (newQuantity <= 1) return res.status(400).json({ message: "Quantity cannot be less than 1" });
+      newQuantity -= 1;
+    }
+
+    await cartCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { quantity: newQuantity, updatedAt: new Date() } }
+    );
+
+    res.status(200).json({ success: true, message: "Quantity updated" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const removeFromCart = async (req, res) => {
+  try {
+    const cartCollection = await getCartCollection();
+    const { id } = req.params;
+
+    const result = await cartCollection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) return res.status(404).json({ message: "Item not found" });
+
+    res.status(200).json({ success: true, message: "Item removed from cart" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { addToCart, getMyCart, updateCartQuantity, removeFromCart };
