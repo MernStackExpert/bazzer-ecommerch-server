@@ -34,12 +34,15 @@ const orderRoutes = require("./routes/order.routes");
 // seller info
 const sellerRoutes = require("./routes/seller.routes");
 
+// add to cart routes
+
 //  API
 app.use("/api/products", productRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/seller", sellerRoutes);
+app.use("/api/cart", cartRoutes);
 
 
 app.get("/", (req, res) => {
