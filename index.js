@@ -35,6 +35,7 @@ const orderRoutes = require("./routes/order.routes");
 const sellerRoutes = require("./routes/seller.routes");
 
 // add to cart routes
+const cartRoutes = require("./routes/cart.routes");
 
 //  API
 app.use("/api/products", productRoutes);
