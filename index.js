@@ -43,6 +43,10 @@ const userStateRoutes = require("./routes/userState.routes");
 // admin info 
 const adminRoutes = require("./routes/admin.routes");
 
+// seller auth info
+const sellerAuthRoutes = require("./routes/sellerAuth.routes");
+
+
 //  API
 app.use("/api/products", productRoutes);
 app.use("/api/users", usersRoutes);
@@ -52,6 +56,7 @@ app.use("/api/seller", sellerRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/user-dashboard", userStateRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/seller-auth", sellerAuthRoutes);
 
 
 app.get("/", (req, res) => {
