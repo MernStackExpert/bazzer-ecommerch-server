@@ -46,6 +46,8 @@ const adminRoutes = require("./routes/admin.routes");
 // seller auth info
 const sellerAuthRoutes = require("./routes/sellerAuth.routes");
 
+// address api
+const addressRoutes = require("./routes/address.routes");
 
 //  API
 app.use("/api/products", productRoutes);
@@ -57,7 +59,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/user-dashboard", userStateRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/seller-auth", sellerAuthRoutes);
-
+app.use("/api/address", addressRoutes);
 
 app.get("/", (req, res) => {
   res.send("E-commerce server running 🚀");
